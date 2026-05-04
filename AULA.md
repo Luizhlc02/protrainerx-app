@@ -6,7 +6,147 @@
 > **Para quem é:** Luiz, dev fullstack Angular/Spring aprendendo React Native.
 > Sempre que possível, conceitos novos são comparados ao mundo Angular/Spring.
 >
-> **Última atualização:** capítulo 3 — Menu lateral (Drawer Navigator).
+> **Última atualização:** seção 0 — Briefing para retomar em nova conversa.
+
+---
+
+## 0. ⚡ Briefing para retomar em nova conversa
+
+> **Se você (assistente) está lendo isto numa nova sessão de chat porque o
+> usuário perdeu o histórico anterior — comece por aqui.** Esta seção é
+> auto-suficiente: cobre quem é o usuário, como ele trabalha, o estado atual
+> do projeto e o que está em aberto.
+
+### 0.1 Sobre o desenvolvedor
+
+- **Nome:** Luiz
+- **Background:** Fullstack experiente em **Angular** e **Spring Boot**
+- **Aprendendo:** **React Native** pela primeira vez através deste projeto
+- **Idioma:** Português (Brasil)
+
+### 0.2 Como ele quer trabalhar (regras importantes)
+
+1. **Chat curto.** Respostas no terminal devem ter o mínimo: o que foi feito,
+   por quê, próximo passo. **Não despeje pedagogia no chat.**
+2. **Toda explicação detalhada vai NESTE arquivo (`AULA.md`)**, em capítulo
+   apropriado. Atualize-o a cada mudança significativa: novo capítulo ou
+   parágrafo + entrada na tabela de "Histórico de atualizações" no fim do
+   arquivo + linha "Última atualização" no topo.
+3. **Compare com Angular sempre que ajudar.** Ex: "isso é como `@Injectable()`",
+   "esse hook funciona como `ngOnInit`", "useNavigation é como injetar `Router`".
+4. **Não pular etapas.** Ele prefere entender do que copiar código.
+5. **TypeScript em tudo.**
+6. Quando ele pedir para **fazer sozinho** algo (ex: ajustar um espaçamento),
+   apenas dê **dicas direcionadas** apontando para o arquivo/área certa, sem
+   resolver o problema para ele.
+
+### 0.3 O projeto em uma frase
+
+App mobile **protrainerx** ("App de Treino") para personal trainers gerenciarem
+treinos de alunos e acompanharem progresso. Dois perfis: **personal trainer**
+e **aluno**. Backend Spring Boot já existente (REST + JWT + PostgreSQL).
+
+### 0.4 Stack já decidida (não mudar sem perguntar)
+
+- React Native + **Expo** (TypeScript)
+- **React Navigation clássico** (Stack + Drawer) — **NÃO usar `expo-router`**
+  (foi explicitamente removido na sessão de setup)
+- **Zustand** para estado global (ainda não criado)
+- **Axios** + interceptor JWT (ainda não criado)
+- **AsyncStorage** para JWT persistido (ainda não usado)
+- Estrutura de pastas em `src/` (não na raiz como o template Expo padrão sugere)
+
+### 0.5 Estado atual do código (o que JÁ existe)
+
+```
+protrainerx/
+├── App.tsx                          ✅ providers (Gesture+SafeArea+Navigation)
+├── index.js                         ✅ entrypoint
+├── babel.config.js                  ✅ alias @/ + worklets
+├── tsconfig.json                    ✅ strict, alias @/* → src/*, exclui app-example
+├── app.json                         ✅ splash #0C3460, web.output=single
+├── src/
+│   ├── components/
+│   │   ├── Card.tsx                 ✅ wrapper visual reutilizável
+│   │   └── SectionHeader.tsx        ✅ "título + chevron" com variante small
+│   ├── navigation/
+│   │   ├── RootNavigator.tsx        ✅ Stack root contendo AppDrawer
+│   │   └── AppDrawer.tsx            ✅ Drawer com Início/Evolução/Contato + custom content
+│   ├── screens/student/
+│   │   ├── HomeScreen.tsx           ✅ tela completa com mock data + hambúrguer
+│   │   ├── ProgressScreen.tsx       ⚠️ placeholder "Em construção"
+│   │   └── ContactScreen.tsx        ⚠️ placeholder "Em construção"
+│   └── types/
+│       └── theme.ts                 ✅ paleta (primary #0C3460, accentBlue #2D7CFF, ...)
+├── app-example/                     📁 template Expo original (referência, ignorado)
+└── assets/                          📁 ícones e splash (do template original)
+```
+
+Pastas vazias (com `.gitkeep`): `src/screens/{auth,personal}`, `src/services`,
+`src/store`, `src/hooks`, `src/utils`.
+
+### 0.6 Mock atual que precisa virar real
+
+- `MOCK_USER = { name: 'Rafael', email: 'rafael@exemplo.com' }` no `AppDrawer.tsx`
+- `MOCK_USER`, `MOCK_TODAY`, `MOCK_WORKOUT` na `HomeScreen.tsx`
+- Botão "Sair" do drawer só faz `console.log('logout')`
+- Botão "INICIAR TREINO" da Home só faz `console.log('iniciar treino')`
+- Botão sino e atalhos rápidos da Home não fazem nada
+
+### 0.7 Tarefas concluídas (pelo gerenciador de tasks)
+
+| ID | Subject | Status |
+|----|---------|--------|
+| 1  | Mover template Expo padrão para /app-example | completed |
+| 2  | Remover expo-router e trocar entrypoint | completed |
+| 3  | Limpar app.json | completed |
+| 4  | Instalar deps (zustand, axios, async-storage, native-stack) | completed |
+| 5  | Criar estrutura src/ | completed |
+| 6  | Configurar path alias @/* → src/* | completed |
+| 7  | Criar App.tsx raiz com NavigationContainer | completed |
+| 8  | Instalar @react-navigation/drawer | completed |
+| 9  | Criar AppDrawer com conteúdo custom | completed |
+| 10 | Criar telas placeholder Progress e Contact | completed |
+| 11 | Atualizar RootNavigator para usar AppDrawer | completed |
+| 12 | Adicionar botão hambúrguer no header | completed |
+| 13 | Atualizar AULA.md com capítulo do Drawer | completed |
+
+### 0.8 Próximos passos sugeridos (ordem recomendada)
+
+Está em [Capítulo 9 — Próximos passos](#9-próximos-passos-planejados) com
+detalhes. Ordem natural:
+
+1. **Login + AuthStack** + **Zustand authStore persistido** — desbloqueia
+   substituir todos os MOCK_USER por dados reais
+2. **Tipos do domínio** (`User`, `Workout`, `Exercise`...) espelhando os
+   DTOs do Spring Boot
+3. **Cliente Axios** (`src/services/api.ts`) com interceptor JWT
+4. **Anel de progresso real** + **gráfico de linha** na Home
+   (`react-native-svg` + lib de chart)
+5. Telas restantes do aluno e do personal
+
+### 0.9 Decisões importantes que NÃO devem ser revertidas sem perguntar
+
+- **`expo-router` foi removido propositalmente.** Se algum tutorial/erro
+  sugerir reinstalar, não faça — confirme antes.
+- **Não usar `app/` (filesystem routing).** Toda rota é declarada em código
+  dentro de `src/navigation/`.
+- **Estrutura `src/`** — não voltar pra raiz como o template original.
+- **Paleta dark obrigatória.** Cor da marca é `#0C3460` (primary, navy escuro).
+  CTAs/anel/gráficos usam `#2D7CFF` (accentBlue, mais brilhante).
+- **Comentários em código:** o usuário valoriza comentários explicativos
+  porque está aprendendo. Aqui é diferente do default "minimal comments" —
+  pode comentar livremente o "porquê" das decisões e conceitos novos.
+
+### 0.10 Como rodar o projeto
+
+```bash
+cd C:/Projetos/protrainerx
+npx expo start
+```
+
+Aperta `a` (Android emulado), escaneia QR no Expo Go (celular), ou `w` (web —
+limitado, alguns componentes renderizam diferente).
 
 ---
 
@@ -629,3 +769,4 @@ Em ordem sugerida (pode mudar conforme decidirmos juntos):
 | 2026-05-02 | Capítulo 1 | Fix do `web.output: "static"` que quebrou `expo start` |
 | 2026-05-03 | Capítulo 2 | Tela Home do aluno com mock data + componentes `Card` e `SectionHeader` |
 | 2026-05-03 | Capítulo 3 | Drawer lateral com avatar+nome+logout, hambúrguer no header, telas placeholder Progress/Contact |
+| 2026-05-03 | Seção 0 | Adicionado briefing de retomada — auto-suficiente para uma nova sessão de chat continuar o trabalho sem o histórico anterior |
