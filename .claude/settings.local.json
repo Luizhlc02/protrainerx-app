@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p C:/Projetos/protrainerx/app-example)",
+      "Bash(mv C:/Projetos/protrainerx/app C:/Projetos/protrainerx/app-example/app)",
+      "Bash(mv C:/Projetos/protrainerx/components C:/Projetos/protrainerx/app-example/components)",
+      "Bash(mv C:/Projetos/protrainerx/hooks C:/Projetos/protrainerx/app-example/hooks)",
+      "Bash(mv C:/Projetos/protrainerx/constants C:/Projetos/protrainerx/app-example/constants)",
+      "Bash(mkdir -p C:/Projetos/protrainerx/src/screens/auth C:/Projetos/protrainerx/src/screens/personal C:/Projetos/protrainerx/src/screens/student C:/Projetos/protrainerx/src/components C:/Projetos/protrainerx/src/navigation C:/Projetos/protrainerx/src/services C:/Projetos/protrainerx/src/store C:/Projetos/protrainerx/src/hooks C:/Projetos/protrainerx/src/utils C:/Projetos/protrainerx/src/types)",
+      "Bash(touch C:/Projetos/protrainerx/src/screens/auth/.gitkeep C:/Projetos/protrainerx/src/screens/personal/.gitkeep C:/Projetos/protrainerx/src/screens/student/.gitkeep C:/Projetos/protrainerx/src/components/.gitkeep C:/Projetos/protrainerx/src/navigation/.gitkeep C:/Projetos/protrainerx/src/services/.gitkeep C:/Projetos/protrainerx/src/store/.gitkeep C:/Projetos/protrainerx/src/hooks/.gitkeep C:/Projetos/protrainerx/src/utils/.gitkeep C:/Projetos/protrainerx/src/types/.gitkeep)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
