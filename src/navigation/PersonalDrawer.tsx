@@ -8,31 +8,29 @@ import {
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ContactScreen } from '@/screens/student/ContactScreen';
+import { PersonalStudentsStack } from '@/navigation/PersonalStack';
+import { DashboardScreen } from '@/screens/personal/DashboardScreen';
+import { WorkoutBuilderScreen } from '@/screens/personal/WorkoutBuilderScreen';
 import { ProfileScreen } from '@/screens/student/ProfileScreen';
-import { ProgressScreen } from '@/screens/student/ProgressScreen';
 import { useAuthStore } from '@/store/authStore';
 import { colors } from '@/types/theme';
 
-import { StudentHomeStack } from '@/navigation/StudentHomeStack';
+// PersonalDrawer — drawer do perfil PERSONAL.
+// Itens: Dashboard, Alunos (stack), Montar treino, Perfil.
 
-// AppDrawer — drawer do perfil ALUNO.
-// Itens: Início (com stack interno), Evolução, Contato, Perfil.
-// Header mostra dados do usuário do authStore; logout dispara authStore.logout().
-
-export type AppDrawerParamList = {
-  HomeTab: undefined;
-  Progress: undefined;
-  Contact: undefined;
+export type PersonalDrawerParamList = {
+  Dashboard: undefined;
+  Students: undefined;
+  WorkoutBuilder: undefined;
   Profile: undefined;
 };
 
-const Drawer = createDrawerNavigator<AppDrawerParamList>();
+const Drawer = createDrawerNavigator<PersonalDrawerParamList>();
 
-export function AppDrawer() {
+export function PersonalDrawer() {
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => <PersonalDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
         drawerStyle: { backgroundColor: colors.surface, width: 280 },
@@ -44,28 +42,30 @@ export function AppDrawer() {
       }}
     >
       <Drawer.Screen
-        name="HomeTab"
-        component={StudentHomeStack}
+        name="Dashboard"
+        component={DashboardScreen}
         options={{
-          drawerLabel: 'Início',
-          drawerIcon: ({ color }) => <Ionicons name="home-outline" size={20} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Progress"
-        component={ProgressScreen}
-        options={{
-          drawerLabel: 'Evolução',
-          drawerIcon: ({ color }) => <Ionicons name="trending-up" size={20} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Contact"
-        component={ContactScreen}
-        options={{
-          drawerLabel: 'Mensagens',
+          drawerLabel: 'Dashboard',
           drawerIcon: ({ color }) => (
-            <Ionicons name="chatbubble-ellipses-outline" size={20} color={color} />
+            <Ionicons name="speedometer-outline" size={20} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Students"
+        component={PersonalStudentsStack}
+        options={{
+          drawerLabel: 'Alunos',
+          drawerIcon: ({ color }) => <Ionicons name="people-outline" size={20} color={color} />,
+        }}
+      />
+      <Drawer.Screen
+        name="WorkoutBuilder"
+        component={WorkoutBuilderScreen}
+        options={{
+          drawerLabel: 'Montar treino',
+          drawerIcon: ({ color }) => (
+            <Ionicons name="barbell-outline" size={20} color={color} />
           ),
         }}
       />
@@ -83,13 +83,10 @@ export function AppDrawer() {
   );
 }
 
-// ─── Custom drawer content ───────────────────────────────────────────────────
-
-function CustomDrawerContent(props: DrawerContentComponentProps) {
+function PersonalDrawerContent(props: DrawerContentComponentProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-
-  const name = user?.name ?? 'Usuário';
+  const name = user?.name ?? 'Personal';
   const email = user?.email ?? '';
 
   return (
@@ -97,15 +94,16 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <View style={styles.header}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{name.charAt(0).toUpperCase()}</Text>
+            <Ionicons name="ribbon" size={22} color={colors.textPrimary} />
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.greeting} numberOfLines={1}>
-              Olá, {name}!
+              {name}
             </Text>
             <Text style={styles.email} numberOfLines={1}>
               {email}
             </Text>
+            <Text style={styles.roleTag}>PERSONAL TRAINER</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -169,10 +167,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: { color: colors.textPrimary, fontSize: 20, fontWeight: '700' },
   headerInfo: { flex: 1 },
   greeting: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
   email: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
+  roleTag: {
+    color: colors.accentBlue,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginTop: 4,
+  },
 
   itemsContainer: { paddingTop: 12 },
   itemLabel: { fontSize: 14, fontWeight: '500', marginLeft: -16 },

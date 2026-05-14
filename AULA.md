@@ -6,7 +6,8 @@
 > **Para quem é:** Luiz, dev fullstack Angular/Spring aprendendo React Native.
 > Sempre que possível, conceitos novos são comparados ao mundo Angular/Spring.
 >
-> **Última atualização:** seção 0 — Briefing para retomar em nova conversa.
+> **Última atualização:** capítulos 4-10 — finalização do front (auth, store,
+> bifurcação, telas do aluno e do personal, charts).
 
 ---
 
@@ -39,6 +40,44 @@
 6. Quando ele pedir para **fazer sozinho** algo (ex: ajustar um espaçamento),
    apenas dê **dicas direcionadas** apontando para o arquivo/área certa, sem
    resolver o problema para ele.
+7. **NÃO assumir que ele conhece o vocabulário do React/RN.** Termos como
+   "Zustand", "AsyncStorage", "hook seletor", "interceptor", "FlatList",
+   "SafeAreaView", "Pressable", "Stack/Drawer navigator" não comunicam nada
+   se aparecerem sem tradução. **Sempre que um termo do ecossistema mobile
+   for usado pela primeira vez num capítulo, abrir com uma linha do tipo
+   "Zustand = biblioteca de estado global; pense como um `@Injectable()`
+   com `BehaviorSubject` embutido".** Sem essa ponte ele não acompanha.
+
+### 0.2.1 ⚠️ AVISO PARA O ASSISTENTE — onde a explicação atual falha
+
+Em 2026-05-13 o usuário deu o seguinte feedback explícito:
+
+> "Sou um dev java e angular que não entende muito do contexto de mobile e
+> react então coisas como **Zustand persistido em AsyncStorage com hooks
+> seletores** não quer dizer muito para mim."
+
+**Onde isso acontece no AULA.md atual:** capítulos 6, 7, 10 e o resumo do
+fim do capítulo 0.7 usam essas siglas como se fossem conhecidas. Precisam
+ser revisitados com a regra acima: cada termo do ecossistema React/RN tem
+que ser **traduzido na primeira aparição** dentro do capítulo, com
+analogia Angular/Spring. Frases sem tradução são ruído.
+
+**Padrão a seguir nos próximos capítulos:**
+
+> ❌ Ruim: "Criamos um `authStore` Zustand persistido em AsyncStorage com
+> hooks seletores que disparam re-render granular."
+>
+> ✅ Bom: "Criamos um `authStore` — um lugar único onde mora o estado de
+> login (token + dados do usuário). Em Angular você faria isso com um
+> service `@Injectable({providedIn:'root'})` que expõe um
+> `BehaviorSubject<AuthState>`. Aqui usamos uma biblioteca chamada
+> **Zustand** que faz a mesma coisa com menos código. Esse estado fica
+> guardado em disco (no **AsyncStorage** — pense no `localStorage` do
+> browser, mas no celular e assíncrono) para sobreviver a fechar/abrir
+> o app. As telas leem fatias específicas desse estado via **hooks
+> seletores** — funções tipo `useUser()` que são equivalentes a um
+> `this.store.select(state => state.user)` do NgRx; cada componente só
+> re-renderiza quando a fatia que ele lê muda."
 
 ### 0.3 O projeto em uma frase
 
@@ -60,70 +99,88 @@ e **aluno**. Backend Spring Boot já existente (REST + JWT + PostgreSQL).
 
 ```
 protrainerx/
-├── App.tsx                          ✅ providers (Gesture+SafeArea+Navigation)
-├── index.js                         ✅ entrypoint
-├── babel.config.js                  ✅ alias @/ + worklets
-├── tsconfig.json                    ✅ strict, alias @/* → src/*, exclui app-example
-├── app.json                         ✅ splash #0C3460, web.output=single
+├── App.tsx                              ✅ providers
+├── index.js                             ✅ entrypoint
+├── babel.config.js                      ✅ alias @/ + worklets
+├── tsconfig.json                        ✅ strict, alias @/* → src/*
+├── app.json                             ✅ splash #0C3460, web.output=single
 ├── src/
 │   ├── components/
-│   │   ├── Card.tsx                 ✅ wrapper visual reutilizável
-│   │   └── SectionHeader.tsx        ✅ "título + chevron" com variante small
+│   │   ├── Card.tsx                     ✅ wrapper visual reutilizável
+│   │   ├── SectionHeader.tsx            ✅ título + chevron
+│   │   ├── TextField.tsx                ✅ input com label/ícone/erro/senha
+│   │   ├── PrimaryButton.tsx            ✅ CTA com loading + variants
+│   │   ├── BarChart.tsx                 ✅ mini gráfico de barras (sem SVG)
+│   │   └── ProgressRing.tsx             ✅ anel de progresso (placeholder visual)
 │   ├── navigation/
-│   │   ├── RootNavigator.tsx        ✅ Stack root contendo AppDrawer
-│   │   └── AppDrawer.tsx            ✅ Drawer com Início/Evolução/Contato + custom content
-│   ├── screens/student/
-│   │   ├── HomeScreen.tsx           ✅ tela completa com mock data + hambúrguer
-│   │   ├── ProgressScreen.tsx       ⚠️ placeholder "Em construção"
-│   │   └── ContactScreen.tsx        ⚠️ placeholder "Em construção"
+│   │   ├── RootNavigator.tsx            ✅ bifurca Auth / Student / Personal
+│   │   ├── AuthStack.tsx                ✅ Login + Register
+│   │   ├── AppDrawer.tsx                ✅ drawer do ALUNO (Início/Evolução/Mensagens/Perfil)
+│   │   ├── PersonalDrawer.tsx           ✅ drawer do PERSONAL (Dashboard/Alunos/Montar/Perfil)
+│   │   ├── StudentHomeStack.tsx         ✅ stack interno do "Início" (Home→Detalhe/Sessão/Dor)
+│   │   └── PersonalStack.tsx            ✅ stack interno de "Alunos" (Lista→Detalhe)
+│   ├── screens/
+│   │   ├── SplashScreen.tsx             ✅ tela enquanto authStore hidrata
+│   │   ├── auth/
+│   │   │   ├── LoginScreen.tsx          ✅ form completo + integra authStore
+│   │   │   └── RegisterScreen.tsx       ✅ form com seletor de role
+│   │   ├── student/
+│   │   │   ├── HomeScreen.tsx           ✅ ligada ao stack + authStore + atalhos reais
+│   │   │   ├── ProgressScreen.tsx       ✅ BarChart + ProgressRing + conquistas
+│   │   │   ├── ContactScreen.tsx        ✅ FlatList de contatos com preview
+│   │   │   ├── ProfileScreen.tsx        ✅ perfil + logout
+│   │   │   ├── ExerciseDetailScreen.tsx ✅ detalhe do exercício
+│   │   │   ├── WorkoutSessionScreen.tsx ✅ executar treino (toggle séries + progress bar)
+│   │   │   └── ReportPainScreen.tsx     ✅ form de relato de dor
+│   │   └── personal/
+│   │       ├── DashboardScreen.tsx      ✅ KPIs + chart + alertas saúde
+│   │       ├── StudentListScreen.tsx    ✅ lista de alunos com busca
+│   │       ├── StudentDetailScreen.tsx  ✅ detalhe do aluno (chart + saúde + métricas)
+│   │       └── WorkoutBuilderScreen.tsx ✅ montagem de treino + catálogo
+│   ├── services/
+│   │   ├── api.ts                       ✅ Axios + interceptor JWT
+│   │   ├── authService.ts               ✅ login/register (mockado, com versão real comentada)
+│   │   └── mockData.ts                  ✅ catálogo central de dados fake tipados
+│   ├── store/
+│   │   └── authStore.ts                 ✅ Zustand + persistência AsyncStorage
 │   └── types/
-│       └── theme.ts                 ✅ paleta (primary #0C3460, accentBlue #2D7CFF, ...)
-├── app-example/                     📁 template Expo original (referência, ignorado)
-└── assets/                          📁 ícones e splash (do template original)
+│       ├── theme.ts                     ✅ paleta
+│       └── domain.ts                    ✅ User, Workout, Exercise, etc.
+└── assets/                              📁 ícones e splash
 ```
 
-Pastas vazias (com `.gitkeep`): `src/screens/{auth,personal}`, `src/services`,
-`src/store`, `src/hooks`, `src/utils`.
+### 0.6 O que ainda é MOCK (precisa virar real quando o backend ligar)
 
-### 0.6 Mock atual que precisa virar real
+- `authService.login/register` retornam token fake (`mock-jwt-<timestamp>`). A
+  versão real está COMENTADA no fim do arquivo — descomentar quando endpoint
+  do Spring estiver disponível
+- `mockData.ts` substitui chamadas como `workoutService.getToday()`,
+  `progressService.getWeekly()`, `studentsService.list()`, etc. Cada tela
+  importa direto dali; trocar é trocar o import + tornar a função async
+- Notificações (sino) ainda não fazem nada
+- WebSocket de chat (V2) — `ContactScreen` mostra preview, sem chat real
 
-- `MOCK_USER = { name: 'Rafael', email: 'rafael@exemplo.com' }` no `AppDrawer.tsx`
-- `MOCK_USER`, `MOCK_TODAY`, `MOCK_WORKOUT` na `HomeScreen.tsx`
-- Botão "Sair" do drawer só faz `console.log('logout')`
-- Botão "INICIAR TREINO" da Home só faz `console.log('iniciar treino')`
-- Botão sino e atalhos rápidos da Home não fazem nada
+### 0.7 Histórico macro de tarefas concluídas
 
-### 0.7 Tarefas concluídas (pelo gerenciador de tasks)
+| Bloco | Descrição |
+|-------|-----------|
+| Setup | template movido, expo-router removido, alias @/*, App.tsx com providers |
+| Home (v1) | HomeScreen com mocks + Card/SectionHeader + Drawer |
+| **Auth** | Tipos de domínio, Axios+JWT, authStore Zustand+AsyncStorage, AuthStack (Login+Register) |
+| **Bifurcação** | RootNavigator escolhe Auth / StudentDrawer / PersonalDrawer por estado |
+| **Aluno completo** | HomeStack (Detalhe/Sessão/Dor) + Profile, ProgressScreen real, ContactScreen real |
+| **Personal completo** | PersonalDrawer com Dashboard, StudentList+Detail, WorkoutBuilder |
+| **Visualização** | BarChart e ProgressRing sem SVG (só Views), reusados nas duas pontas |
 
-| ID | Subject | Status |
-|----|---------|--------|
-| 1  | Mover template Expo padrão para /app-example | completed |
-| 2  | Remover expo-router e trocar entrypoint | completed |
-| 3  | Limpar app.json | completed |
-| 4  | Instalar deps (zustand, axios, async-storage, native-stack) | completed |
-| 5  | Criar estrutura src/ | completed |
-| 6  | Configurar path alias @/* → src/* | completed |
-| 7  | Criar App.tsx raiz com NavigationContainer | completed |
-| 8  | Instalar @react-navigation/drawer | completed |
-| 9  | Criar AppDrawer com conteúdo custom | completed |
-| 10 | Criar telas placeholder Progress e Contact | completed |
-| 11 | Atualizar RootNavigator para usar AppDrawer | completed |
-| 12 | Adicionar botão hambúrguer no header | completed |
-| 13 | Atualizar AULA.md com capítulo do Drawer | completed |
+### 0.8 Próximos passos sugeridos
 
-### 0.8 Próximos passos sugeridos (ordem recomendada)
-
-Está em [Capítulo 9 — Próximos passos](#9-próximos-passos-planejados) com
-detalhes. Ordem natural:
-
-1. **Login + AuthStack** + **Zustand authStore persistido** — desbloqueia
-   substituir todos os MOCK_USER por dados reais
-2. **Tipos do domínio** (`User`, `Workout`, `Exercise`...) espelhando os
-   DTOs do Spring Boot
-3. **Cliente Axios** (`src/services/api.ts`) com interceptor JWT
-4. **Anel de progresso real** + **gráfico de linha** na Home
-   (`react-native-svg` + lib de chart)
-5. Telas restantes do aluno e do personal
+1. **Plugar backend real**: descomentar versão real em `authService.ts`,
+   substituir os imports de `mockData` por chamadas a services reais
+2. **Cobertura nativa**: instalar `react-native-svg` e trocar ProgressRing
+   por anel SVG real (proporcional via strokeDashoffset)
+3. **Notificações push** (sino do header) — Expo Notifications
+4. **Chat V2** com WebSocket/STOMP — substitui o preview da ContactScreen
+5. Testes (Jest + React Native Testing Library) das telas principais
 
 ### 0.9 Decisões importantes que NÃO devem ser revertidas sem perguntar
 
@@ -156,12 +213,20 @@ limitado, alguns componentes renderizam diferente).
 2. [Stack escolhida e por quê](#2-stack-escolhida-e-por-quê)
 3. [Anatomia de um projeto Expo](#3-anatomia-de-um-projeto-expo)
 4. [Conceitos fundamentais do React Native](#4-conceitos-fundamentais-do-react-native)
-5. [Capítulo 1 — Setup inicial (o que rodamos e por quê)](#5-capítulo-1--setup-inicial)
+5. [Capítulo 1 — Setup inicial](#5-capítulo-1--setup-inicial)
 6. [Capítulo 2 — Tela Home do aluno](#6-capítulo-2--tela-home-do-aluno)
 7. [Capítulo 3 — Menu lateral (Drawer Navigator)](#7-capítulo-3--menu-lateral-drawer-navigator)
-8. [Glossário rápido](#8-glossário-rápido)
-9. [Próximos passos planejados](#9-próximos-passos-planejados)
-10. [Histórico de atualizações](#10-histórico-de-atualizações)
+8. [Capítulo 4 — Tipos do domínio](#8-capítulo-4--tipos-do-domínio)
+9. [Capítulo 5 — Cliente HTTP (Axios + JWT)](#9-capítulo-5--cliente-http-axios--jwt)
+10. [Capítulo 6 — Estado global (Zustand + AsyncStorage)](#10-capítulo-6--estado-global-zustand--asyncstorage)
+11. [Capítulo 7 — AuthStack (Login + Cadastro)](#11-capítulo-7--authstack-login--cadastro)
+12. [Capítulo 8 — Bifurcação do RootNavigator](#12-capítulo-8--bifurcação-do-rootnavigator)
+13. [Capítulo 9 — Fluxo do aluno (HomeStack + telas)](#13-capítulo-9--fluxo-do-aluno-homestack--telas)
+14. [Capítulo 10 — Fluxo do personal](#14-capítulo-10--fluxo-do-personal)
+15. [Capítulo 11 — Componentes reutilizáveis criados](#15-capítulo-11--componentes-reutilizáveis-criados)
+16. [Glossário rápido](#16-glossário-rápido)
+17. [Próximos passos planejados](#17-próximos-passos-planejados)
+18. [Histórico de atualizações](#18-histórico-de-atualizações)
 
 ---
 
@@ -719,7 +784,693 @@ perfil), basta criar `StudentDrawer` e `PersonalDrawer` e escolher no
 
 ---
 
-## 8. Glossário rápido
+## 8. Capítulo 4 — Tipos do domínio
+
+Arquivo: `src/types/domain.ts`. Toda a tipagem de dados que circulam pelo
+app — espelho dos DTOs do Spring Boot.
+
+### 8.1 Por que centralizar em um arquivo só
+
+Em projetos médios é comum quebrar em `src/types/user.ts`, `workout.ts`, etc.
+Por enquanto temos poucos tipos relacionados, então um arquivo único é mais
+fácil de navegar. Quando passar de ~300 linhas, quebramos.
+
+**Analogia Angular:** é o equivalente das `interface` em `models/` ou de
+`*.dto.ts` que você gera com `nswag`/`openapi-generator` a partir do swagger
+do backend.
+
+### 8.2 Convenções
+
+- IDs sempre `string` (Spring envia `Long` mas tratamos como string para
+  evitar perda de precisão e padronizar o front)
+- Enums como **union types** (`'STUDENT' | 'PERSONAL'`) em vez de `enum`. Por
+  quê: `enum` do TS gera código em runtime; union é só checagem em compile.
+  Mais leve.
+- Tipos terminados em `DTO` representam o payload exato da API (ex:
+  `AuthResponseDTO`). Tipos sem `DTO` (ex: `User`, `Workout`) são o modelo do
+  app — pode haver transformação entre o que o backend manda e o que a tela
+  usa, embora hoje sejam iguais.
+
+### 8.3 Tipos criados
+
+| Tipo | Uso |
+|---|---|
+| `User`, `UserRole` | Usuário logado, tem `role: STUDENT | PERSONAL` |
+| `LoginCredentials`, `RegisterPayload`, `AuthResponseDTO` | Auth |
+| `Exercise`, `MuscleGroup`, `PlannedSet`, `WorkoutExercise` | Catálogo + planificação |
+| `Workout`, `WorkoutIntensity` | Treino completo (lista de exercícios + meta) |
+| `WorkoutSession`, `PerformedSet`, `PerformedExercise` | O que o aluno fez de fato |
+| `HealthFeedback`, `PainSeverity` | Relato de dor |
+| `ProgressSummary`, `WeeklyProgressPoint` | Dados da tela Evolução |
+
+---
+
+## 9. Capítulo 5 — Cliente HTTP (Axios + JWT)
+
+Arquivo: `src/services/api.ts`. Cliente Axios central com interceptor JWT.
+
+### 9.1 Por que Axios e não fetch
+
+Os dois funcionam em RN. Axios ganha por:
+- Interceptors (request E response) prontos
+- Transform de JSON automático
+- Erro com `error.response.status` é mais ergonômico que decodificar a
+  Response do `fetch`
+- Cancelamento de request com AbortController integrado
+
+### 9.2 Anatomia do `api.ts`
+
+```ts
+const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080/api';
+export const api = axios.create({ baseURL, timeout: 15000, ... });
+```
+
+- `EXPO_PUBLIC_API_URL`: variável de ambiente lida em runtime. Tudo que começa
+  com `EXPO_PUBLIC_` é exposto ao bundle (segredos NÃO podem ir aqui).
+- Em emulador Android, `localhost` da máquina é `10.0.2.2`. Em iOS simulator,
+  `localhost` mesmo. Em dispositivo físico, IP da máquina na rede.
+
+### 9.3 Interceptor de request (injeta JWT)
+
+```ts
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+  if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  return config;
+});
+```
+
+**Equivalência Angular**: idêntico ao padrão `HttpInterceptor` do Angular —
+você intercepta a request e adiciona/clona com `setHeaders`. A diferença é
+que Axios não tem injeção de dependência: o interceptor é registrado uma vez
+no módulo, e qualquer chamada `api.get/post/...` passa por ele.
+
+**Por que ler do AsyncStorage a cada request, não cachear em memória?**
+- AsyncStorage é a fonte da verdade (sobrevive a reloads/hot reload)
+- Custo é baixíssimo (cache nativo)
+- Evita estado duplicado com o authStore (sem risco de "store dizer X,
+  storage dizer Y")
+
+### 9.4 Interceptor de response (401 → limpa token)
+
+Quando o backend devolve 401 (token expirado), apagamos o token do storage.
+O authStore, em seguida, percebe via fluxo de logout que será disparado pela
+UI. Não dispatchamos navegação daqui: este arquivo não conhece o navigator —
+mantém a separação de camadas.
+
+### 9.5 authService
+
+Arquivo: `src/services/authService.ts`. Funções `login()` e `register()`.
+
+Por enquanto retornam mocks (token fake + user inferido pelo email). A versão
+real está **comentada no fim do arquivo** — basta descomentar e remover o
+bloco mock quando o backend estiver disponível.
+
+Truque pra testar: emails começando com `p@` ou `personal` viram PERSONAL,
+o resto vira STUDENT. Permite testar os dois fluxos sem precisar de email mágico.
+
+---
+
+## 10. Capítulo 6 — Estado global (Zustand + AsyncStorage)
+
+Arquivo: `src/store/authStore.ts`.
+
+### 10.1 Por que Zustand?
+
+Comparação com outras opções para estado global em RN:
+
+| Lib | Boilerplate | Curva | Performance | Quando usar |
+|---|---|---|---|---|
+| Redux Toolkit | Alto | Alta | Alta | Apps grandes com state machine claro |
+| MobX | Médio | Média | Alta | Times que vêm de OOP/Vue |
+| **Zustand** | **Baixíssimo** | **Baixa** | **Alta** | **Default moderno** |
+| Context + useState | Zero | Zero | Baixa em escala | Estado local de árvore pequena |
+
+Zustand é literalmente "uma função que cria um hook":
+
+```ts
+const useAuthStore = create((set) => ({
+  user: null,
+  login: async (creds) => {
+    const { token, user } = await authService.login(creds);
+    set({ token, user });
+  },
+}));
+
+// Em qualquer componente:
+const user = useAuthStore((s) => s.user);
+```
+
+**Comparação Angular:** equivale a um `@Injectable({providedIn:'root'})` que
+expõe um `BehaviorSubject<AuthState>`, mas o "subscribe" é automático e
+granular — você passa um seletor (`s => s.user`) e o componente só re-renderiza
+quando essa fatia muda.
+
+### 10.2 Estrutura do nosso authStore
+
+```
+user            User | null         — usuário logado
+token           string | null       — JWT
+hydrated        boolean             — true depois de tentar ler do storage
+loading         boolean             — request de login/register em andamento
+error           string | null       — última mensagem de erro de auth
+
+hydrate()       lê token+user do AsyncStorage
+login(creds)    chama authService.login + persiste
+register(p)     chama authService.register + persiste
+logout()        limpa storage + state
+clearError()    zera o campo error
+```
+
+### 10.3 Persistência manual (sem `zustand/middleware/persist`)
+
+Optamos por chamar `AsyncStorage.getItem/setItem` direto em vez de usar o
+middleware `persist` do Zustand. Razões:
+
+1. **Compatibilidade com `api.ts`**: o interceptor lê o token de uma chave
+   conhecida (`@protrainerx/auth-token`). Se usássemos `persist`, o formato
+   seria um JSON envelope (`{ state, version }`) e teríamos que decodificar
+   no interceptor. Atrito desnecessário.
+2. **Controle do timing**: queremos `hydrated: false` antes da leitura para
+   poder mostrar o splash. O middleware faz isso transparente, mas a gente
+   prefere ver o código.
+
+### 10.4 Hooks seletores prontos
+
+No final do arquivo:
+
+```ts
+export const useUser = () => useAuthStore((s) => s.user);
+export const useIsAuthenticated = () => useAuthStore((s) => !!s.token && !!s.user);
+export const useAuthHydrated = () => useAuthStore((s) => s.hydrated);
+```
+
+São wrappers ergonômicos. Em qualquer tela:
+
+```tsx
+const user = useUser();          // re-renderiza só se user mudar
+```
+
+Equivalente Angular: `store.select(state => state.user)` no NgRx, mas mais
+leve.
+
+### 10.5 Padrão "set imutável"
+
+```ts
+set({ token, user, loading: false });
+```
+
+`set` recebe um objeto parcial e mescla. NUNCA mute o estado existente
+(`state.user.name = 'X'`) — o React não detecta e a UI não atualiza. Mesma
+regra do Redux/RxJS.
+
+---
+
+## 11. Capítulo 7 — AuthStack (Login + Cadastro)
+
+Arquivo: `src/navigation/AuthStack.tsx` + telas em `src/screens/auth/`.
+
+### 11.1 Por que um Stack separado para auth?
+
+Telas de login/cadastro **não** devem ter o drawer lateral. Colocá-las em um
+Stack próprio (fora do AppDrawer/PersonalDrawer) garante isso por construção
+— elas nem existem no mesmo navigator que o resto do app.
+
+O `RootNavigator` decide a cada render qual stack montar (Auth vs App), então
+após login você simplesmente desaparece do AuthStack — o swipe-back nativo do
+iOS não consegue voltar para Login (ele nem está mais na árvore).
+
+### 11.2 LoginScreen — conceitos novos
+
+#### KeyboardAvoidingView
+
+```tsx
+<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+```
+
+O teclado virtual do mobile tapa inputs na parte de baixo. `KeyboardAvoidingView`
+ajusta o layout quando o teclado aparece:
+- `padding`: adiciona padding inferior do tamanho do teclado
+- `height`: encolhe a altura
+- `position`: muda a posição absoluta
+
+Convenção: `padding` no iOS, `height` no Android funciona pra maioria dos casos.
+
+#### useState para form
+
+```tsx
+const [email, setEmail] = useState('');
+<TextInput value={email} onChangeText={setEmail} />
+```
+
+Comparação direta com Angular:
+- Angular: `[(ngModel)]="email"` (two-way binding mágico via Zone.js)
+- React: `value={email} onChangeText={setEmail}` (explícito, sem mágica)
+
+A vantagem do React: você sempre sabe quem está atualizando o estado. A
+desvantagem: mais verboso. Pra forms maiores existem libs (`react-hook-form`,
+`formik`), mas para 2-3 campos a versão na mão serve.
+
+#### Consumindo o store
+
+```tsx
+const login = useAuthStore((s) => s.login);
+const loading = useAuthStore((s) => s.loading);
+const error = useAuthStore((s) => s.error);
+```
+
+Cada hook retorna uma fatia diferente — o componente re-renderiza só quando
+ALGUMA dessas fatias muda. Se o store atualizar um campo `user` (não usado
+aqui), nada acontece.
+
+### 11.3 RegisterScreen — seletor de role
+
+A escolha de perfil (`ALUNO | PERSONAL`) é feita por um par de botões com
+estado local (`useState<UserRole>`). Toque alterna; o `register()` recebe
+isso no payload.
+
+Em produção, criar conta de personal geralmente exige aprovação manual ou
+código de convite. Pro MVP, deixamos aberto para facilitar testes.
+
+---
+
+## 12. Capítulo 8 — Bifurcação do RootNavigator
+
+Arquivo: `src/navigation/RootNavigator.tsx`.
+
+### 12.1 O padrão "stack que troca de filho"
+
+```tsx
+<Stack.Navigator>
+  {!user ? (
+    <Stack.Screen name="Auth" component={AuthStack} />
+  ) : user.role === 'PERSONAL' ? (
+    <Stack.Screen name="PersonalApp" component={PersonalDrawer} />
+  ) : (
+    <Stack.Screen name="StudentApp" component={AppDrawer} />
+  )}
+</Stack.Navigator>
+```
+
+**O que acontece em runtime:** quando o usuário faz login, o `user` muda no
+store, o RootNavigator re-renderiza e o Stack agora declara apenas o
+`StudentApp` (ou `PersonalApp`). React Navigation detecta a mudança de
+filhos e **monta/desmonta** os stacks inteiros — sem animação de "go back"
+involvida. A transição visual é a `animation: 'fade'` que pusemos no
+`screenOptions`.
+
+**Por que isso é seguro:**
+- Após login, AuthStack é DESMONTADO. Não tem como o gesto de voltar levar
+  a tela de Login de volta (não existe na árvore).
+- Após logout, o app inteiro é desmontado, evitando vazamento de estado de
+  tela.
+
+### 12.2 Hidratação no boot
+
+```tsx
+const hydrate = useAuthStore((s) => s.hydrate);
+useEffect(() => { hydrate(); }, [hydrate]);
+
+if (!hydrated) return <SplashScreen />;
+```
+
+`useEffect(fn, [])` (array vazio) = "rodar uma vez no mount". Equivale ao
+`ngOnInit` do componente raiz. Aqui disparamos `hydrate()` que lê o token
+do AsyncStorage.
+
+Enquanto `hydrated === false`, renderiza splash. Sem isso, o app pisca a
+tela de login mesmo quando o usuário já estava logado (porque hydrated
+inicia falso → user inicia null → cai no AuthStack por meio segundo).
+
+### 12.3 Por que `useEffect([hydrate])` em vez de `useEffect([], [])`
+
+`hydrate` é uma função estável (Zustand garante referência constante), então
+incluí-la na dependência é seguro e satisfaz o lint do `react-hooks`. Em
+ambos os casos roda uma vez só.
+
+---
+
+## 13. Capítulo 9 — Fluxo do aluno (HomeStack + telas)
+
+### 13.1 Estrutura
+
+```
+AppDrawer (StudentDrawer)
+├─ Drawer.Screen "HomeTab"  → StudentHomeStack
+│                              ├─ Home
+│                              ├─ ExerciseDetail   (push do Home)
+│                              ├─ WorkoutSession   (push do Home)
+│                              └─ ReportPain       (push de Home)
+├─ Drawer.Screen "Progress" → ProgressScreen
+├─ Drawer.Screen "Contact"  → ContactScreen
+└─ Drawer.Screen "Profile"  → ProfileScreen
+```
+
+### 13.2 Por que aninhar Stack dentro do Drawer
+
+- **Drawer**: seções top-level, lateral. Trocar de drawer item NÃO mantém histórico de Stack.
+- **Stack**: drill-down. Push empilha (com botão voltar); back desempilha.
+
+Como queremos que "abrir um exercício a partir da Home" mostre botão de voltar
+e mantenha o gesto de swipe-back, sub-telas precisam de Stack. E como o
+**header** do Stack só aparece quando você está navegando dentro dele,
+escondê-lo na Home (`headerShown: false` na rota Home) deixa a aparência
+limpa nessa tela, mas as sub-telas ganham header automático com o título
+configurado.
+
+### 13.3 Tipando params da rota
+
+```ts
+export type StudentHomeStackParamList = {
+  Home: undefined;
+  ExerciseDetail: { exerciseId: string };
+  WorkoutSession: undefined;
+  ReportPain: undefined;
+};
+```
+
+Quando você chama `navigation.navigate('ExerciseDetail', { exerciseId: 'x' })`,
+TypeScript checa que:
+1. A rota existe nesse stack
+2. Os params batem com o tipo declarado
+
+Em telas: `useRoute<RouteProp<ParamList, 'ExerciseDetail'>>()` retorna params
+com o tipo certo. Erro de digitação vira erro de compile.
+
+**Equivalência Angular:** o `ActivatedRoute.snapshot.params` é tipado como
+`Params` (basicamente `Record<string, string>`). Aqui temos tipagem real, com
+shapes específicos por rota.
+
+### 13.4 ExerciseDetailScreen
+
+Recebe `exerciseId` via params, busca no `MOCK_TODAY_WORKOUT` (vai virar
+`workoutService.getExercise(id)`). Mostra:
+- Hero icon centralizado
+- Card "Planejamento" (séries, reps, carga, descanso)
+- Card "Como executar" (descrição do exercício)
+- Card "Observações do seu personal" (notes do `WorkoutExercise`)
+
+### 13.5 WorkoutSessionScreen
+
+Tela de execução do treino. Conceitos:
+
+**Estado com Set**: para marcar séries concluídas usamos `Set<string>` onde
+o id é `${exerciseId}-${setIndex}`. Lookup em O(1), toggle simples:
+
+```tsx
+const next = new Set(prev);   // CRIA novo Set — referência diferente
+if (next.has(id)) next.delete(id); else next.add(id);
+return next;
+```
+
+**Pegadinha**: mutar o Set existente (`prev.add(id)`) NÃO dispara re-render.
+React compara por referência; o Set é o mesmo objeto. Sempre clone.
+
+**Barra de progresso**: View com `width: '${progress * 100}%'`. Sem libs.
+
+### 13.6 ReportPainScreen
+
+Form para o aluno relatar dor: localização, severidade (3 botões coloridos),
+notas. Severidade usa um array tipado de opções:
+
+```ts
+const severities: { value: PainSeverity; label: string; color: string }[] = [...]
+```
+
+Renderizar via `.map()` é o padrão `*ngFor` do React — você mapeia array
+para JSX direto.
+
+### 13.7 ProfileScreen
+
+Visão do perfil + acesso ao logout. Funciona para os dois perfis (é importado
+pelo AppDrawer E pelo PersonalDrawer) porque depende só do `user` do store.
+
+### 13.8 Mudanças na HomeScreen
+
+A versão anterior:
+- Usava `MOCK_USER = { name: 'Rafael' }` hardcoded
+- Botão "INICIAR TREINO" só fazia `console.log`
+- Atalhos não navegavam
+
+Agora:
+- `useUser()` puxa o nome do store
+- Botão "INICIAR TREINO" → `navigation.navigate('WorkoutSession')`
+- Atalho "Relatar dor" → `navigation.navigate('ReportPain')`
+- Atalho "Chat" e "Evolução" → `navigation.getParent()?.navigate(...)` para
+  pular pro drawer item irmão
+- Lista de exercícios do treino com tap → ExerciseDetail
+- Anel agora é o `ProgressRing` real, com cor reativa à meta
+
+#### `navigation.getParent()` — quando usar
+
+A Home está dentro do `StudentHomeStack`, que está dentro do `AppDrawer`.
+`navigation` por padrão é do stack. Para falar com o drawer (irmão da rota
+"Contact", por exemplo), pegamos o pai: `navigation.getParent()`.
+
+`as never` no segundo arg é uma escape hatch porque o `getParent()` retorna
+um navigator não tipado — a outra opção é tipar o pai manualmente, o que
+encrespa a árvore de tipos. Em projeto pequeno, `as never` é um trade-off
+ok.
+
+---
+
+## 14. Capítulo 10 — Fluxo do personal
+
+### 14.1 Estrutura
+
+```
+PersonalDrawer
+├─ Drawer.Screen "Dashboard"     → DashboardScreen
+├─ Drawer.Screen "Students"      → PersonalStudentsStack
+│                                   ├─ StudentList
+│                                   └─ StudentDetail (push)
+├─ Drawer.Screen "WorkoutBuilder"→ WorkoutBuilderScreen
+└─ Drawer.Screen "Profile"       → ProfileScreen
+```
+
+Mesmo padrão do aluno: drawer top-level, stack interno onde precisa de
+drill-down (Lista → Detalhe).
+
+### 14.2 DashboardScreen — KPIs + chart + alertas
+
+Três cards de KPI no topo (Alunos ativos, Treinos hoje, Alertas saúde), um
+BarChart com treinos por dia da semana e uma lista de feedbacks de saúde
+recentes. Cada alerta tem cor (verde/amarelo/vermelho) por severidade.
+
+### 14.3 StudentListScreen — useMemo + busca
+
+```tsx
+const [query, setQuery] = useState('');
+const filtered = useMemo(() => {
+  const q = query.trim().toLowerCase();
+  if (!q) return MOCK_STUDENTS;
+  return MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(q));
+}, [query]);
+```
+
+**`useMemo` em uma frase:** cacheia o resultado entre renders, recalcula só
+quando dependências mudam. Análogo Angular: **pipe puro** (`@Pipe({pure:true})`).
+
+Aqui evita filtrar 1000 alunos a cada keystroke fora da searchbox. Como
+nossa lista tem 4 itens, o ganho é nulo na prática — mas é o padrão certo
+para listas maiores e custa nada.
+
+### 14.4 StudentDetailScreen
+
+Recebe `studentId` via params, mostra perfil + chart de evolução + histórico
+de saúde + métricas semanais.
+
+### 14.5 WorkoutBuilderScreen — gerenciar lista que cresce
+
+```tsx
+const [selected, setSelected] = useState<Exercise[]>([]);
+const toggle = (ex: Exercise) => {
+  setSelected(prev =>
+    prev.find(e => e.id === ex.id)
+      ? prev.filter(e => e.id !== ex.id)
+      : [...prev, ex]
+  );
+};
+```
+
+Padrão: sempre criar um array NOVO em vez de mutar (`prev.push(ex)` não
+funcionaria — mesma referência, sem re-render).
+
+O catálogo expandível (botão "+ Adicionar") é só um boolean (`showCatalog`)
+que mostra/esconde a lista de exercícios disponíveis.
+
+---
+
+## 15. Capítulo 11 — Componentes reutilizáveis criados
+
+### 15.1 TextField
+
+`src/components/TextField.tsx`. Wrapper visual de `TextInput` com:
+- Label opcional acima
+- Ícone à esquerda (Ionicons)
+- Mensagem de erro abaixo
+- `isPassword` que adiciona toggle de visibilidade (olho aberto/fechado)
+- Defaults sensatos: `autoCapitalize="none"`, `autoCorrect={false}`,
+  `placeholderTextColor` correto pro dark mode
+
+### 15.2 PrimaryButton
+
+`src/components/PrimaryButton.tsx`. CTA com:
+- Estado `loading` (mostra `ActivityIndicator`, bloqueia toque)
+- `disabled` (50% opacity, bloqueia)
+- Variants: `primary` (azul cheio), `secondary` (azul escuro), `ghost`
+  (transparente com borda azul)
+- Ícone à direita opcional
+
+### 15.3 BarChart
+
+`src/components/BarChart.tsx`. Mini gráfico de barras feito **só com View**
+— sem `react-native-svg`. Como funciona:
+
+```tsx
+const max = Math.max(1, ...data.map(d => d.value));
+<View style={{ height: `${(d.value / max) * 100}%` }} />
+```
+
+Cada barra é uma `View` com altura proporcional ao maior valor. Layout em
+flex row com `alignItems: 'flex-end'` para crescer de baixo pra cima.
+
+**Trade-off** vs SVG: não dá pra ter linhas curvas, áreas preenchidas com
+gradiente, eixos com ticks. Mas para barras simples + labels, é suficiente
+e evita a dep nativa. Quando precisar de algo mais sofisticado, instalamos
+`react-native-svg` + `react-native-gifted-charts`.
+
+### 15.4 ProgressRing
+
+`src/components/ProgressRing.tsx`. Anel circular **placeholder** — borda
+colorida + número no centro. A cor muda em função do ratio:
+- < 30% → cinza (longe da meta)
+- 30-70% → amarelo (a caminho)
+- ≥ 70% → azul (perto/atingiu)
+
+Anel REAL com arco proporcional exige `react-native-svg` para desenhar um
+`<Circle>` com `strokeDasharray` + `strokeDashoffset` calculados pelo
+perímetro. Quando trocarmos por SVG, a API do componente (`value`, `max`,
+`label`) fica igual — só o interior muda.
+
+---
+
+## 15-bis. Deploy web na Vercel
+
+Adicionamos suporte para publicar o app como **site web estático** na Vercel,
+para mostrar funcionalidades a um cliente sem precisar do app no celular.
+
+### O que é cada coisa (vocabulário antes do código)
+
+- **Build web do Expo:** o Expo consegue empacotar o mesmo código React Native
+  como uma **página web**. Por baixo, ele usa `react-native-web` (uma biblioteca
+  que traduz `<View>` para `<div>`, `<Text>` para `<span>`, etc.). O resultado
+  é uma pasta com `index.html` + JS + CSS — equivalente exato ao `dist/` que
+  o `ng build` do Angular produz.
+- **SPA (Single Page Application):** o site tem **um único HTML**. As "rotas"
+  (Home, Evolução, Login) são trocadas pelo JavaScript no cliente, sem o
+  servidor recarregar a página. Igual ao Angular. Está configurado no
+  `app.json` com `"web": { "output": "single" }`.
+- **Vercel:** serviço de hospedagem que pega uma pasta de arquivos estáticos
+  e serve numa URL pública (com HTTPS, CDN, deploy automático ligado ao git).
+  Equivalente "para frontend" do que seria um Netlify, Render, ou Firebase
+  Hosting. Não é específico de React — qualquer build estático funciona.
+- **`vercel.json`:** arquivo de configuração que diz à Vercel COMO fazer o
+  build e QUAL pasta servir. Análogo distante: o `nginx.conf` num servidor
+  próprio, ou o bloco `staticwebapp.config.json` da Azure.
+
+### O que adicionamos
+
+#### 1. Script no `package.json`
+
+```json
+"build:web": "expo export --platform web"
+```
+
+Esse comando roda o **bundler do Expo** (Metro) em modo "produção web" e
+gera a pasta `dist/` com tudo otimizado (JS minificado, hashes nos arquivos
+pra cache-busting). É o equivalente do `npm run build` num projeto Angular.
+
+#### 2. `vercel.json` na raiz
+
+```json
+{
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+**Linha a linha:**
+
+- `buildCommand`: o que rodar para gerar o build. Apontamos para o script
+  que acabamos de criar.
+- `outputDirectory`: onde a Vercel vai achar os arquivos prontos depois do
+  build. Tem que bater com o que o `expo export` gera (`dist`).
+- `framework: null`: dizemos "não tente detectar Next.js / Angular / etc.,
+  esse projeto é genérico". Sem isso, a Vercel pode tentar otimizações que
+  não fazem sentido para um build do Expo.
+- `rewrites`: **aqui mora a parte importante**. Em uma SPA, se o usuário
+  digitar diretamente `https://app.vercel.app/profile` no navegador, o
+  servidor não tem um arquivo chamado `profile` — só tem `index.html`. Sem
+  o rewrite, a Vercel devolveria **404**. Com o rewrite, **qualquer URL**
+  cai no `index.html`, o JavaScript carrega, lê a URL e renderiza a rota
+  certa. É o "fallback to index.html" clássico de SPA.
+
+  Analogia Angular: é o equivalente do `try_files $uri /index.html` no
+  Nginx ou do `<rewrite>` no `web.config` do IIS quando você publica um
+  Angular sem hash routing.
+
+### Como subir
+
+**Opção A — via GitHub (recomendado, deploy contínuo):**
+
+1. Commit do código + push pro GitHub.
+2. Em `vercel.com` → "Add New Project" → importa o repositório.
+3. Na tela de configuração, a Vercel já vai ler o `vercel.json` e preencher
+   tudo. Só clicar **Deploy**.
+4. A cada `git push` na branch principal, ela rebuilda e publica sozinha.
+
+**Opção B — via CLI (deploy avulso, sem GitHub):**
+
+```bash
+npm i -g vercel    # instala a CLI uma vez
+vercel             # primeiro deploy (preview)
+vercel --prod      # publica em produção
+```
+
+A CLI lê o `vercel.json` localmente e faz upload do build pronto.
+
+### O que avisar pro cliente
+
+- O app foi **desenhado para celular**. Abrir no celular ou no modo
+  responsivo do DevTools (F12 → ícone de celular) é o ideal.
+- **Login é mock:** qualquer email/senha entra.
+  - Email começando com `p@` → entra como **personal trainer**
+  - Qualquer outro email → entra como **aluno**
+- Gestos de swipe (abrir drawer arrastando da borda) **não funcionam no
+  web**. Use o botão de menu (hambúrguer) no canto superior esquerdo.
+- Notificações (sino) e chat (mensagens) ainda são placeholders visuais.
+
+### Limitações do build web
+
+Alguns componentes do React Native não têm equivalente exato no web — o
+`react-native-web` tenta aproximar mas pode ter diferenças visuais:
+
+- `SafeAreaView` (que respeita notch do iPhone) vira um `<div>` comum no web
+- `KeyboardAvoidingView` (que afasta o input do teclado) não faz nada no web
+- Animações de transição entre telas são mais "duras" que no nativo
+- O `react-native-reanimated` funciona mas com overhead maior
+
+Para apresentação de funcionalidades isso não é problema. Para experiência
+real, o caminho é o `npx expo start --tunnel` + Expo Go no celular.
+
+---
+
+## 16. Glossário rápido
 
 | Termo | O que é | Análogo Angular |
 |---|---|---|
@@ -738,35 +1489,49 @@ perfil), basta criar `StudentDrawer` e `PersonalDrawer` e escolher no
 
 ---
 
-## 9. Próximos passos planejados
+## 17. Próximos passos planejados
 
-Em ordem sugerida (pode mudar conforme decidirmos juntos):
+Ordem sugerida (mudou bastante: front está praticamente pronto agora):
 
-- [ ] **Anel de progresso real + gráfico de linha** — instalar
-  `react-native-svg` e uma lib de chart. Substituir os 2 placeholders da Home
-- [ ] **Tipos do domínio** (`src/types/`) — `User`, `Workout`, `Exercise`,
-  `WorkoutSession`, `HealthFeedback` espelhando os DTOs do Spring
-- [ ] **Cliente Axios + interceptor JWT** (`src/services/api.ts`)
-- [ ] **`authService.login()`** falando com `POST /auth/login` do backend
-- [ ] **Zustand `authStore`** persistido no AsyncStorage
-- [ ] **`LoginScreen`** (`src/screens/auth/LoginScreen.tsx`)
-- [ ] **`AuthStack` vs `AppStack`** — bifurcação do navigator pelo estado de
-  auth (padrão clássico em apps mobile)
-- [ ] **Bottom tab navigator** para o aluno (Home / Evolução / Chat)
-- [ ] **Telas restantes do aluno** — Detalhe do exercício, Registrar treino,
-  Meu progresso, Relatar dor
-- [ ] **Telas do personal** — Dashboard, Lista de alunos, Montagem de treino,
-  Acompanhamento de aluno
-- [ ] **Chat WebSocket/STOMP** — V2
+- [x] **Tipos do domínio** — `User`, `Workout`, `Exercise`, `WorkoutSession`,
+  `HealthFeedback`, `ProgressSummary`
+- [x] **Cliente Axios + interceptor JWT**
+- [x] **`authService.login/register`** (mockado; versão real pronta no fim do arquivo)
+- [x] **Zustand `authStore`** persistido no AsyncStorage
+- [x] **`LoginScreen` + `RegisterScreen`**
+- [x] **`AuthStack` vs `AppDrawer/PersonalDrawer`** — bifurcação do navigator
+- [x] **Telas do aluno** — Home, Evolução, Mensagens, Perfil, Detalhe do exercício,
+  Executar treino, Relatar dor
+- [x] **Telas do personal** — Dashboard, Lista de alunos, Detalhe aluno,
+  Montagem de treino, Perfil
+- [x] **Charts** — `BarChart` (sem SVG) e `ProgressRing` (placeholder visual)
+- [ ] **Backend real** — descomentar versão real em `authService.ts`, trocar
+  imports de `mockData` por chamadas a services dedicados
+- [ ] **`react-native-svg`** — anel de progresso real (com strokeDashoffset
+  proporcional), gráficos com curvas
+- [ ] **Notificações push** — Expo Notifications, integrar com o sino do header
+- [ ] **Chat WebSocket/STOMP** — V2, substitui o preview da ContactScreen
+- [ ] **Testes** — Jest + React Native Testing Library
 
 ---
 
-## 10. Histórico de atualizações
+## 18. Histórico de atualizações
 
 | Data | Capítulo afetado | Resumo |
 |---|---|---|
-| 2026-05-02 | Capítulo 1 | Setup inicial completo: removeu expo-router, criou estrutura `src/`, configurou alias, criou App.tsx |
-| 2026-05-02 | Capítulo 1 | Fix do `web.output: "static"` que quebrou `expo start` |
-| 2026-05-03 | Capítulo 2 | Tela Home do aluno com mock data + componentes `Card` e `SectionHeader` |
-| 2026-05-03 | Capítulo 3 | Drawer lateral com avatar+nome+logout, hambúrguer no header, telas placeholder Progress/Contact |
-| 2026-05-03 | Seção 0 | Adicionado briefing de retomada — auto-suficiente para uma nova sessão de chat continuar o trabalho sem o histórico anterior |
+| 2026-05-02 | Cap 1 | Setup inicial: removeu expo-router, criou estrutura `src/`, configurou alias, criou App.tsx |
+| 2026-05-02 | Cap 1 | Fix do `web.output: "static"` que quebrou `expo start` |
+| 2026-05-03 | Cap 2 | Tela Home do aluno com mock data + componentes `Card` e `SectionHeader` |
+| 2026-05-03 | Cap 3 | Drawer lateral com avatar+nome+logout, hambúrguer no header, telas placeholder Progress/Contact |
+| 2026-05-03 | Seção 0 | Adicionado briefing de retomada — auto-suficiente para nova sessão |
+| 2026-05-13 | Cap 4 | Tipos do domínio (`User`, `Workout`, `Exercise`, ...) em `src/types/domain.ts` |
+| 2026-05-13 | Cap 5 | Cliente Axios + interceptor JWT + `authService` (com versão real comentada) |
+| 2026-05-13 | Cap 6 | `authStore` Zustand persistido em AsyncStorage; hooks seletores `useUser`, `useIsAuthenticated`, `useAuthHydrated` |
+| 2026-05-13 | Cap 7 | `AuthStack`: LoginScreen + RegisterScreen (com seletor de role) + componentes `TextField` e `PrimaryButton` |
+| 2026-05-13 | Cap 8 | Bifurcação do RootNavigator: Auth / StudentApp / PersonalApp + SplashScreen durante hidratação |
+| 2026-05-13 | Cap 9 | Fluxo do aluno: `StudentHomeStack` (ExerciseDetail, WorkoutSession, ReportPain), ProfileScreen; HomeScreen ligada ao store; ProgressScreen real; ContactScreen real |
+| 2026-05-13 | Cap 10 | Fluxo do personal: `PersonalDrawer` + DashboardScreen, StudentListScreen (com busca/useMemo), StudentDetailScreen, WorkoutBuilderScreen |
+| 2026-05-13 | Cap 11 | Componentes reusáveis: `TextField`, `PrimaryButton`, `BarChart`, `ProgressRing` |
+| 2026-05-13 | Seção 0 | Briefing atualizado com nova estrutura de arquivos e mocks pendentes |
+| 2026-05-13 | Seção 0.2 | Regra 7 adicionada: NÃO usar jargão RN/React sem traduzir com analogia Angular |
+| 2026-05-13 | Cap 15-bis | Deploy web na Vercel: `vercel.json` + script `build:web`, com explicação de SPA/rewrite |
