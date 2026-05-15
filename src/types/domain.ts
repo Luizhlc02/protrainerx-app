@@ -28,16 +28,13 @@ export interface User {
 export interface LoginCredentials {
   email: string;
   password: string;
-}
-
-export interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
+  // O usuário escolhe o perfil no próprio Login (cap. 12 do AULA.md).
+  // Não há cadastro dentro do app — a conta é criada pelo backend a partir
+  // da assinatura externa e o app só precisa autenticar.
   role: UserRole;
 }
 
-// Resposta do POST /auth/login (e /auth/register) do Spring
+// Resposta do POST /auth/login do Spring
 export interface AuthResponseDTO {
   token: string;
   user: User;

@@ -6,8 +6,10 @@
 > **Para quem é:** Luiz, dev fullstack Angular/Spring aprendendo React Native.
 > Sempre que possível, conceitos novos são comparados ao mundo Angular/Spring.
 >
-> **Última atualização:** capítulos 4-10 — finalização do front (auth, store,
-> bifurcação, telas do aluno e do personal, charts).
+> **Última atualização:** capítulo 12 **implementado** — `RegisterScreen`
+> apagado, rota `Register` saiu do `AuthStack`, `register()` removido de
+> `authStore`/`authService`, `LoginCredentials` ganhou `role`, `LoginScreen`
+> agora tem segmented control **ALUNO/PERSONAL**. `tsc --noEmit` passa.
 
 ---
 
@@ -122,8 +124,7 @@ protrainerx/
 │   ├── screens/
 │   │   ├── SplashScreen.tsx             ✅ tela enquanto authStore hidrata
 │   │   ├── auth/
-│   │   │   ├── LoginScreen.tsx          ✅ form completo + integra authStore
-│   │   │   └── RegisterScreen.tsx       ✅ form com seletor de role
+│   │   │   └── LoginScreen.tsx          ✅ form completo com seletor de role (ALUNO/PERSONAL)
 │   │   ├── student/
 │   │   │   ├── HomeScreen.tsx           ✅ ligada ao stack + authStore + atalhos reais
 │   │   │   ├── ProgressScreen.tsx       ✅ BarChart + ProgressRing + conquistas
@@ -148,6 +149,21 @@ protrainerx/
 │       └── domain.ts                    ✅ User, Workout, Exercise, etc.
 └── assets/                              📁 ícones e splash
 ```
+
+### 0.5.1 ✅ Sem cadastro no app — implementado em 2026-05-14
+
+O cliente decidiu que **o app não tem cadastro**. O fluxo de virada de
+visitante em usuário é externo: a pessoa **assina o plano** (site de vendas
+/ link de pagamento), e a equipe cria a conta no backend amarrada ao
+**e-mail que ela informou no checkout**. Ao abrir o app, só faz login.
+
+A tela de Login **agora pede o perfil** (Aluno ou Personal) via segmented
+control, junto com e-mail e senha. O `role` viaja no payload de
+`authService.login` e é o que define se o `RootNavigator` monta o
+`AppDrawer` (aluno) ou o `PersonalDrawer`.
+
+Mudanças aplicadas e plano completo no
+**[Capítulo 12](#19-capítulo-12--decisão-de-produto-login-com-seletor-de-role-sem-cadastro)**.
 
 ### 0.6 O que ainda é MOCK (precisa virar real quando o backend ligar)
 
@@ -175,12 +191,16 @@ protrainerx/
 ### 0.8 Próximos passos sugeridos
 
 1. **Plugar backend real**: descomentar versão real em `authService.ts`,
-   substituir os imports de `mockData` por chamadas a services reais
-2. **Cobertura nativa**: instalar `react-native-svg` e trocar ProgressRing
-   por anel SVG real (proporcional via strokeDashoffset)
-3. **Notificações push** (sino do header) — Expo Notifications
-4. **Chat V2** com WebSocket/STOMP — substitui o preview da ContactScreen
-5. Testes (Jest + React Native Testing Library) das telas principais
+   substituir os imports de `mockData` por chamadas a services reais.
+   Quando rolar, alinhar o contrato de erros do `/auth/login` com a tabela
+   sugerida em 19.6 (`INVALID_CREDENTIALS`, `WRONG_ROLE`, etc.)
+2. **Primeiro login → trocar senha**: sub-rota `ChangePassword` no
+   `AuthStack`, gatilhada por flag `mustChangePassword` na resposta de login
+3. **Cobertura nativa**: instalar `react-native-svg` e trocar `ProgressRing`
+   por anel SVG real (proporcional via `strokeDashoffset`)
+4. **Notificações push** (sino do header) — Expo Notifications
+5. **Chat V2** com WebSocket/STOMP — substitui o preview da `ContactScreen`
+6. Testes (Jest + React Native Testing Library) das telas principais
 
 ### 0.9 Decisões importantes que NÃO devem ser revertidas sem perguntar
 
@@ -194,6 +214,9 @@ protrainerx/
 - **Comentários em código:** o usuário valoriza comentários explicativos
   porque está aprendendo. Aqui é diferente do default "minimal comments" —
   pode comentar livremente o "porquê" das decisões e conceitos novos.
+- **Sem cadastro no app (decidido 2026-05-14).** O onboarding acontece fora
+  do app: o cliente assina o plano, a equipe cria a conta no backend
+  vinculada ao e-mail dele. No app só existe Login. Detalhes no cap. 12.
 
 ### 0.10 Como rodar o projeto
 
@@ -227,6 +250,7 @@ limitado, alguns componentes renderizam diferente).
 16. [Glossário rápido](#16-glossário-rápido)
 17. [Próximos passos planejados](#17-próximos-passos-planejados)
 18. [Histórico de atualizações](#18-histórico-de-atualizações)
+19. [Capítulo 12 — Decisão de produto: login com seletor de role, sem cadastro](#19-capítulo-12--decisão-de-produto-login-com-seletor-de-role-sem-cadastro)
 
 ---
 
@@ -1043,14 +1067,20 @@ Cada hook retorna uma fatia diferente — o componente re-renderiza só quando
 ALGUMA dessas fatias muda. Se o store atualizar um campo `user` (não usado
 aqui), nada acontece.
 
-### 11.3 RegisterScreen — seletor de role
+### 11.3 RegisterScreen — REMOVIDO em 2026-05-14
 
-A escolha de perfil (`ALUNO | PERSONAL`) é feita por um par de botões com
-estado local (`useState<UserRole>`). Toque alterna; o `register()` recebe
-isso no payload.
+> 🗑️ **Removido.** O arquivo `src/screens/auth/RegisterScreen.tsx` foi
+> deletado, junto com a rota `Register` do `AuthStack`, o método
+> `register` do `authStore` e a função `register` do `authService`. Não
+> existe mais cadastro dentro do app. O **seletor de role** (Aluno /
+> Personal) que vivia nessa tela foi **movido para o `LoginScreen`** com
+> o mesmo visual de segmented control. Detalhe da migração no
+> [Capítulo 12](#19-capítulo-12--decisão-de-produto-login-com-seletor-de-role-sem-cadastro).
 
-Em produção, criar conta de personal geralmente exige aprovação manual ou
-código de convite. Pro MVP, deixamos aberto para facilitar testes.
+**Como era (histórico):** a escolha de perfil era feita por um par de
+botões com estado local (`useState<UserRole>`). O `register()` recebia
+isso no payload junto com nome, email e senha. Esse mesmo padrão de
+segmented control sobreviveu — só mudou de tela.
 
 ---
 
@@ -1448,9 +1478,12 @@ A CLI lê o `vercel.json` localmente e faz upload do build pronto.
 
 - O app foi **desenhado para celular**. Abrir no celular ou no modo
   responsivo do DevTools (F12 → ícone de celular) é o ideal.
-- **Login é mock:** qualquer email/senha entra.
-  - Email começando com `p@` → entra como **personal trainer**
-  - Qualquer outro email → entra como **aluno**
+- **Login é mock:** qualquer e-mail/senha entra. Para escolher o perfil,
+  **toque no segmented control no topo do formulário** (ALUNO / PERSONAL)
+  antes de tocar em "Entrar". O perfil escolhido define se ele vê o app
+  do aluno ou o do personal.
+- **Não há cadastro dentro do app.** O acesso vem da assinatura externa
+  (a equipe cria a conta amarrada ao e-mail do checkout).
 - Gestos de swipe (abrir drawer arrastando da borda) **não funcionam no
   web**. Use o botão de menu (hambúrguer) no canto superior esquerdo.
 - Notificações (sino) e chat (mensagens) ainda são placeholders visuais.
@@ -1505,6 +1538,10 @@ Ordem sugerida (mudou bastante: front está praticamente pronto agora):
 - [x] **Telas do personal** — Dashboard, Lista de alunos, Detalhe aluno,
   Montagem de treino, Perfil
 - [x] **Charts** — `BarChart` (sem SVG) e `ProgressRing` (placeholder visual)
+- [ ] **🔥 Refatorar auth (cap. 12)** — remover `RegisterScreen`/rota
+  `Register`, retirar link "Cadastre-se" e dica `p@` do `LoginScreen`,
+  adicionar seletor de role no Login, ajustar `authService.login` +
+  `authStore` (drop do `register`)
 - [ ] **Backend real** — descomentar versão real em `authService.ts`, trocar
   imports de `mockData` por chamadas a services dedicados
 - [ ] **`react-native-svg`** — anel de progresso real (com strokeDashoffset
@@ -1534,4 +1571,230 @@ Ordem sugerida (mudou bastante: front está praticamente pronto agora):
 | 2026-05-13 | Cap 11 | Componentes reusáveis: `TextField`, `PrimaryButton`, `BarChart`, `ProgressRing` |
 | 2026-05-13 | Seção 0 | Briefing atualizado com nova estrutura de arquivos e mocks pendentes |
 | 2026-05-13 | Seção 0.2 | Regra 7 adicionada: NÃO usar jargão RN/React sem traduzir com analogia Angular |
-| 2026-05-13 | Cap 15-bis | Deploy web na Vercel: `vercel.json` + script `build:web`, com explicação de SPA/rewrite |
+| 2026-05-13 | Seção 15-bis | Deploy web na Vercel: `vercel.json`, script `build:web`, rewrite SPA, instruções de subida + limitações do build web |
+| 2026-05-14 | **Cap 12 (novo)** | **Decisão de produto:** remover cadastro do app; login passa a ter seletor de role (Aluno/Personal). Cap. 7.3 (RegisterScreen) marcado como "a remover"; seções 0.5, 0.5.1, 0.8 e 0.9 atualizadas |
+| 2026-05-14 | **Cap 12 (implementado)** | Aplicado o plano A→F: `RegisterScreen` deletado, rota `Register` removida do `AuthStack`, `register()` saiu de `authStore`/`authService`, `LoginCredentials` ganhou `role`, `LoginScreen` ganhou segmented control ALUNO/PERSONAL e dica do `p@` foi substituída por aviso de "acesso por assinatura". Seção 15-bis atualizada para refletir o novo fluxo de teste. `tsc --noEmit` ✅ |
+
+---
+
+## 19. Capítulo 12 — Decisão de produto: login com seletor de role, sem cadastro
+
+> **Data da decisão:** 2026-05-14.
+> **Status:** ✅ **implementado em 2026-05-14**. `tsc --noEmit` passa sem
+> erros. `RegisterScreen` foi deletado, `register` saiu do `authService` e
+> do `authStore`, `LoginCredentials` ganhou o campo `role`, o
+> `LoginScreen` agora tem o segmented control **ALUNO/PERSONAL**.
+
+### 19.1 O que mudou (em uma frase)
+
+O cliente disse que **não vai existir cadastro dentro do app**. Quem quiser
+usar a plataforma assina o plano fora do app (site/landing/checkout); a
+equipe cria a conta no backend já vinculada ao e-mail que essa pessoa
+informou no momento do pagamento. No app só existe **Login** — e o Login
+precisa pedir também o **perfil** (Aluno ou Personal).
+
+### 19.2 Por que isso muda algo no Login
+
+Hoje o `LoginScreen` pede apenas e-mail e senha. O perfil (`STUDENT` /
+`PERSONAL`) é descoberto **na hora**, com uma gambiarra dentro do mock
+(`authService.ts`):
+
+```ts
+// src/services/authService.ts (versão MOCK atual)
+function deduceRoleFromEmail(email: string): User['role'] {
+  const e = email.toLowerCase();
+  if (e.startsWith('p@') || e.startsWith('personal')) return 'PERSONAL';
+  return 'STUDENT';
+}
+```
+
+Isso só servia porque tínhamos um cadastro real (`RegisterScreen`) que
+mandava o `role` explícito. **Quando o cadastro morre, o login passa a ser
+a única porta — e precisa carregar o `role` em algum lugar.** A opção
+escolhida é: **o próprio usuário escolhe o perfil na tela de login**, antes
+de digitar e-mail/senha.
+
+Por que não deixar o backend resolver pelo e-mail? Porque o mesmo e-mail
+pode (em tese) ter mais de um perfil (um personal que também é aluno em
+algum momento), e mesmo se a regra for "um e-mail → um perfil", **mandar o
+perfil explícito no payload deixa o backend recusar o login com mensagem
+clara** ("este e-mail é de aluno, troque o seletor para 'Aluno'") em vez
+de devolver um payload genérico que a UI precisa interpretar.
+
+### 19.3 Por que o cadastro saiu
+
+Três motivos vindos do cliente:
+
+1. **Plataforma paga.** Só quem assina entra; ter formulário público de
+   cadastro abre porta pra inscrições "fantasma" e contas sem assinatura.
+2. **Validação de e-mail acoplada ao pagamento.** O e-mail correto do
+   cliente é o que ele digita no checkout — não há razão de pedir de novo
+   no app (e abrir margem pra erro de digitação).
+3. **Reduz tela para manter no MVP.** Menos formulário = menos bug, menos
+   regra de validação, menos texto pra traduzir/revisar.
+
+### 19.4 Como o onboarding fica (fluxo novo)
+
+```
+1. Cliente entra no site de vendas         (fora do app)
+2. Cliente paga / assina o plano           (fora do app)
+3. Webhook do gateway → backend Spring     (fora do app)
+   backend cria User { email, role, senha-temporária }
+4. Backend envia e-mail "Bem-vindo!"       (fora do app)
+   com senha provisória + link pro download do app
+5. Cliente baixa o app, abre, faz LOGIN    (DENTRO do app — única porta)
+   escolhe Aluno ou Personal, digita e-mail e senha
+6. Primeiro login força troca de senha     (a fazer no backend; tela igual)
+```
+
+**O app só toca os passos 5 e 6.** Os passos 1-4 são responsabilidade da
+plataforma de vendas + backend. Quando o backend estiver pronto, o passo 6
+provavelmente vira uma sub-rota do `AuthStack` (ex.: `ChangePassword`) que
+só aparece se o backend devolver uma flag tipo `mustChangePassword: true`
+no `AuthResponseDTO` — fica em aberto.
+
+### 19.5 Mudanças concretas aplicadas no código
+
+Implementadas em 2026-05-14, na ordem A→F (para não quebrar build no meio):
+
+#### A. `src/screens/auth/LoginScreen.tsx` — adicionar seletor de role
+
+Antes dos campos de e-mail/senha, colocar um par de botões (mesmo padrão
+visual do `RegisterScreen.tsx` atual). Estado local:
+
+```tsx
+const [role, setRole] = useState<UserRole>('STUDENT'); // default = aluno
+```
+
+UI sugerida (segmented control simples — dois botões lado a lado):
+
+```
+┌─────────────────────────────────────────┐
+│           Entrar como:                  │
+│  [✓ Aluno]            [ Personal ]      │
+└─────────────────────────────────────────┘
+```
+
+**Analogia Angular:** é o mesmo que ter um `<mat-button-toggle-group>` com
+duas opções fazendo `[(ngModel)]="role"`. Em RN, dois `<Pressable>` com
+estilos condicionais (`role === 'STUDENT' ? styles.active : styles.idle`).
+
+O botão "ENTRAR" passa a chamar `login({ email, password, role })`.
+
+**Remover também:**
+- Bloco `<View style={styles.footer}>` com o link "Cadastre-se" (linhas
+  ~112-117).
+- Bloco `<View style={styles.hint}>` com a dica "use email começando com
+  p@" (linhas ~119-123). Já não vale, porque o role passa a vir do botão.
+
+#### B. `src/types/domain.ts` — incluir `role` em `LoginCredentials`
+
+Hoje:
+
+```ts
+export type LoginCredentials = { email: string; password: string };
+```
+
+Vira:
+
+```ts
+export type LoginCredentials = {
+  email: string;
+  password: string;
+  role: UserRole; // 'STUDENT' | 'PERSONAL'
+};
+```
+
+O TypeScript em modo strict vai apontar exatamente onde isso quebra
+(provavelmente só no Login e no `authService.login`).
+
+#### C. `src/services/authService.ts` — usar o role do payload
+
+No mock:
+
+```ts
+export async function login(credentials: LoginCredentials) {
+  await sleep(700);
+  if (!credentials.email || !credentials.password) {
+    throw new Error('Credenciais inválidas');
+  }
+  return {
+    token: 'mock-jwt-' + Date.now(),
+    user: {
+      id: 'u-' + credentials.email,
+      name: nameFromEmail(credentials.email),
+      email: credentials.email,
+      role: credentials.role, // <— vem do form agora
+    },
+  };
+}
+```
+
+Apagar a função `deduceRoleFromEmail` (vira código morto).
+Apagar `register()` inteiro (não precisa mais da função nem da versão
+real comentada do `register`).
+
+#### D. `src/store/authStore.ts` — remover `register`
+
+- Remover método `register` da interface e da implementação.
+- Remover do `RegisterScreen` os imports (mas o arquivo todo vai sumir,
+  então isso é só checagem).
+
+#### E. `src/navigation/AuthStack.tsx` — remover rota `Register`
+
+```tsx
+export type AuthStackParamList = {
+  Login: undefined;
+  // Register: undefined;  ← remover
+};
+
+// e remover o <Stack.Screen name="Register" .../>
+```
+
+Como a única rota vira `Login`, dá pra simplificar o `AuthStack` inteiro
+para renderizar direto `<LoginScreen />` sem `createNativeStackNavigator`.
+**Manter o Stack** ainda assim é razoável: futuramente vamos precisar de
+sub-telas (`ForgotPassword`, `ChangePassword` no primeiro login). Mais
+fácil já estar no Stack do que reintroduzir depois.
+
+#### F. `src/screens/auth/RegisterScreen.tsx` — apagar arquivo
+
+Último passo, quando A-E já compilarem.
+
+### 19.6 Mensagens de erro do login que ficam mais úteis
+
+Com o role explícito no payload, o backend Spring pode devolver respostas
+mais claras. Sugestão de contrato para quando ele estiver pronto:
+
+| Cenário | HTTP | Body |
+|---|---|---|
+| Credenciais inválidas | `401` | `{ "error": "INVALID_CREDENTIALS" }` |
+| E-mail não cadastrado | `404` | `{ "error": "USER_NOT_FOUND" }` |
+| Role errado (e-mail é de aluno, login marcou Personal) | `403` | `{ "error": "WRONG_ROLE", "actualRole": "STUDENT" }` |
+| Conta não confirmada | `403` | `{ "error": "PENDING_ACTIVATION" }` |
+
+No front, o `error: string \| null` do `authStore` vira a mensagem
+traduzida (`"Esse e-mail é de aluno. Troque o seletor."` etc.). Isso é
+tópico para outra sessão — só fica registrado aqui pra não esquecer.
+
+### 19.7 O que NÃO muda
+
+- `RootNavigator` continua igual (bifurca por `user.role`). Como o role já
+  vem certo da resposta de login, ele simplesmente funciona.
+- `AppDrawer` / `PersonalDrawer` / telas de aluno / telas de personal:
+  inalteradas.
+- Persistência (`@protrainerx/auth-token` + `@protrainerx/auth-user` no
+  AsyncStorage) idem — o formato do `User` salvo já tem `role`.
+- A dica da Vercel sobre "use email começando com p@" some do `LoginScreen`,
+  mas a seção 15-bis ainda menciona ela. **Atualizar a seção "O que avisar
+  pro cliente" da 15-bis** quando essa refatoração subir, para refletir o
+  novo fluxo (selecionar role no botão em vez de prefixar o e-mail).
+
+### 19.8 Resumo para retomar em uma nova sessão
+
+> O app não tem mais cadastro. O onboarding é externo (assinatura).
+> O Login pede e-mail + senha + **role (Aluno/Personal)**. O role no
+> payload de login vai para o backend, que valida e devolve o User já
+> com role correto. A bifurcação Aluno × Personal pelo `RootNavigator`
+> continua igual; muda só a fonte do `role` (form em vez de
+> heurística por prefixo do e-mail).

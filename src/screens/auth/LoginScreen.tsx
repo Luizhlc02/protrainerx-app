@@ -14,25 +14,31 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { TextField } from '@/components/TextField';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/authStore';
+import type { UserRole } from '@/types/domain';
 import { colors } from '@/types/theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-// LoginScreen — formulário de entrada.
+// LoginScreen — única porta de entrada do app.
+//
+// Decisão (cap. 12 do AULA.md, 2026-05-14): o app não tem cadastro. O usuário
+// escolhe o perfil (Aluno / Personal) aqui mesmo e o role vai no payload de
+// login para o backend validar.
 //
 // Conceitos novos para quem vem de Angular:
-//
-// - `useState` no lugar de variáveis no controller. Cada `set` re-renderiza
-//   o componente (zero magia tipo `ngModel`/Zone.js — é explícito).
+// - `useState` no lugar de variáveis no controller. Cada `set` re-renderiza o
+//   componente (sem `ngModel`/Zone.js — é explícito).
 // - `KeyboardAvoidingView` resolve o problema do teclado tampar o input.
-//   No web/Angular você não precisa disso; no mobile é obrigatório.
 // - O store é injetado via hook (`useAuthStore`) — equivale a injetar um
 //   service no construtor, mas chamado dentro da função.
 
-export function LoginScreen({ navigation }: Props) {
+export function LoginScreen(_: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Default = aluno (perfil de maior volume). Personal tem que trocar.
+  const [role, setRole] = useState<UserRole>('STUDENT');
+
   const login = useAuthStore((s) => s.login);
   const loading = useAuthStore((s) => s.loading);
   const error = useAuthStore((s) => s.error);
@@ -40,18 +46,19 @@ export function LoginScreen({ navigation }: Props) {
 
   const onSubmit = async () => {
     try {
-      await login({ email: email.trim(), password });
-      // Sucesso: o RootNavigator vai reagir ao state e mostrar o AppDrawer
+      await login({ email: email.trim(), password, role });
+      // Sucesso: o RootNavigator reage ao state e troca para o Drawer certo.
     } catch {
-      // Erro já está no store (state.error). UI mostra abaixo.
+      // Erro fica no store (state.error). UI mostra abaixo.
     }
+  };
+
+  const resetErrorOnEdit = () => {
+    if (error) clearError();
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* KeyboardAvoidingView: no iOS empurra a tela quando o teclado aparece.
-          No Android o sistema cuida disso via softInputMode, mas o behavior
-          'height' funciona em ambos para nosso layout. */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -70,6 +77,26 @@ export function LoginScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.form}>
+            <Text style={styles.roleHeader}>Entrar como</Text>
+            <View style={styles.roleSwitch}>
+              <RoleOption
+                label="ALUNO"
+                active={role === 'STUDENT'}
+                onPress={() => {
+                  setRole('STUDENT');
+                  resetErrorOnEdit();
+                }}
+              />
+              <RoleOption
+                label="PERSONAL"
+                active={role === 'PERSONAL'}
+                onPress={() => {
+                  setRole('PERSONAL');
+                  resetErrorOnEdit();
+                }}
+              />
+            </View>
+
             <TextField
               label="EMAIL"
               icon="mail-outline"
@@ -79,7 +106,7 @@ export function LoginScreen({ navigation }: Props) {
               value={email}
               onChangeText={(t) => {
                 setEmail(t);
-                if (error) clearError();
+                resetErrorOnEdit();
               }}
             />
             <TextField
@@ -90,7 +117,7 @@ export function LoginScreen({ navigation }: Props) {
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
-                if (error) clearError();
+                resetErrorOnEdit();
               }}
             />
 
@@ -109,21 +136,39 @@ export function LoginScreen({ navigation }: Props) {
             </Pressable>
           </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Não tem conta?</Text>
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.link}>Cadastre-se</Text>
-            </Pressable>
-          </View>
-
           <View style={styles.hint}>
             <Text style={styles.hintText}>
-              💡 Dica de teste: use email começando com {'"p@"'} para entrar como personal.
+              Acesso liberado após a assinatura da plataforma — sua conta foi
+              criada com o e-mail informado no cadastro.
             </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+// Botão único do segmented control. Visual: pílula azul quando ativo, texto
+// suave quando inativo. Pressable é o equivalente RN do <button> — recebe
+// `onPress` (não `onClick`) e estiliza por estado.
+function RoleOption({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      style={[styles.roleOption, active && styles.roleOptionActive]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+    >
+      <Text style={[styles.roleLabel, active && styles.roleLabelActive]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -150,6 +195,35 @@ const styles = StyleSheet.create({
   title: { color: colors.textPrimary, fontSize: 22, fontWeight: '700' },
   subtitle: { color: colors.textSecondary, fontSize: 13 },
   form: { gap: 14 },
+  roleHeader: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: -6,
+  },
+  roleSwitch: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  roleOption: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  roleOptionActive: { backgroundColor: colors.accentBlue },
+  roleLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  roleLabelActive: { color: colors.textPrimary },
   errorBanner: {
     backgroundColor: `${colors.danger}22`,
     color: colors.danger,
@@ -163,19 +237,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 'auto',
-  },
-  footerText: { color: colors.textSecondary, fontSize: 14 },
-  link: { color: colors.accentBlue, fontSize: 14, fontWeight: '700' },
   hint: {
     backgroundColor: `${colors.accentBlue}1A`,
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
+    marginTop: 'auto',
   },
   hintText: { color: colors.textSecondary, fontSize: 12, lineHeight: 18 },
 });

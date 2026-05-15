@@ -3,7 +3,7 @@ import { create } from 'zustand';
 
 import * as authService from '@/services/authService';
 import { TOKEN_STORAGE_KEY } from '@/services/api';
-import type { LoginCredentials, RegisterPayload, User } from '@/types/domain';
+import type { LoginCredentials, User } from '@/types/domain';
 
 // authStore — fonte da verdade do estado de autenticação.
 //
@@ -34,7 +34,6 @@ interface AuthState {
 
   hydrate: () => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -74,22 +73,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ token, user, loading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao entrar';
-      set({ loading: false, error: message });
-      throw err;
-    }
-  },
-
-  register: async (payload) => {
-    set({ loading: true, error: null });
-    try {
-      const { token, user } = await authService.register(payload);
-      await Promise.all([
-        AsyncStorage.setItem(TOKEN_STORAGE_KEY, token),
-        AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user)),
-      ]);
-      set({ token, user, loading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Falha ao cadastrar';
       set({ loading: false, error: message });
       throw err;
     }
